@@ -5,18 +5,18 @@ class RpcRequest extends RpcPacket {
   final String method;
   final Object? params;
 
-  RpcRequest({this.id, required this.method, AnyMap? map, AnyList? list}) : params = map ?? list {
+  RpcRequest({this.id, required this.method, RpcMap? map, RpcList? list}) : params = map ?? list {
     assert(id == null || id is int || id is String);
     assert(map == null || list == null);
     assert(method.isNotEmpty);
   }
 
-  RpcRequest.notify({required this.method, AnyMap? map, AnyList? list}) : params = map ?? list, id = null {
+  RpcRequest.notify({required this.method, RpcMap? map, RpcList? list}) : params = map ?? list, id = null {
     assert(method.isNotEmpty);
     assert(map == null || list == null);
   }
 
-  RpcRequest.invoke({Object? id, required this.method, AnyMap? map, AnyList? list}) : params = map ?? list, id = id ?? Rpc.nextID {
+  RpcRequest.invoke({Object? id, required this.method, RpcMap? map, RpcList? list}) : params = map ?? list, id = id ?? Rpc.nextID {
     assert(id == null || id is int || id is String);
     assert(map == null || list == null);
     assert(method.isNotEmpty);
@@ -29,50 +29,50 @@ class RpcRequest extends RpcPacket {
   bool get isNotify => !hasID;
 
   int get paramCount => switch (params) {
-    AnyMap m => m.length,
-    AnyList l => l.length,
+    RpcMap m => m.length,
+    RpcList l => l.length,
     _ => 0,
   };
 
   bool get hasParams => paramCount > 0;
 
   @override
-  void onJson(AnyMap map) {
+  void onJson(RpcMap map) {
     super.onJson(map);
     if (id != null) {
       map[Rpc.ID] = id;
     }
     map[Rpc.METHOD] = method;
     switch (params) {
-      case AnyMap m:
+      case RpcMap m:
         map[Rpc.PARAMS] = m;
-      case AnyList l:
+      case RpcList l:
         map[Rpc.PARAMS] = l;
       default:
         break;
     }
   }
 
-  static RpcRequest? from(AnyMap map) {
+  static RpcRequest? from(RpcMap map) {
     if (!_verifyVersion(map)) return null;
     String? method = map[Rpc.METHOD];
     if (method == null) return null;
     Object? id = map[Rpc.ID];
     Object? params = map[Rpc.PARAMS];
     switch (params) {
-      case AnyMap m:
+      case RpcMap m:
         return RpcRequest(id: id, method: method, map: m);
-      case AnyList l:
+      case RpcList l:
         return RpcRequest(id: id, method: method, list: l);
       default:
         return RpcRequest(id: id, method: method);
     }
   }
 
-  static List<RpcRequest> fromBatch(AnyList jlist) {
+  static List<RpcRequest> fromBatch(RpcList jlist) {
     List<RpcRequest> ls = [];
     for (var e in jlist) {
-      if (e is AnyMap) {
+      if (e is RpcMap) {
         var r = from(e);
         if (r != null) ls.add(r);
       }

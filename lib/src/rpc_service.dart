@@ -14,7 +14,7 @@ class RpcService implements TextReceiver {
         client.onResponse(response);
         return null;
       case List<RpcPacket> ls:
-        List<AnyMap> jList = [];
+        List<RpcMap> jList = [];
         for (RpcPacket p in ls) {
           if (p is RpcRequest) {
             var r = server.onRequest(p);
@@ -32,11 +32,11 @@ class RpcService implements TextReceiver {
     return null;
   }
 
-  Future<Object?> request(RpcTextSender textSender, String method, {AnyMap? args}) {
+  Future<Object?> request(RpcTextSender textSender, String method, {RpcMap? args}) {
     return client.request(textSender, method, map: args);
   }
 
-  Future<bool> notify(RpcTextSender textSender, String method, {AnyMap? args}) {
+  Future<bool> notify(RpcTextSender textSender, String method, {RpcMap? args}) {
     return RpcClient.notify(textSender, method, map: args);
   }
 

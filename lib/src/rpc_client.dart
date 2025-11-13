@@ -9,14 +9,14 @@ class RpcClient implements TextReceiver {
   String? onRecvText(String text) {
     var jo = json.decode(text);
     switch (jo) {
-      case AnyMap map:
+      case RpcMap map:
         var a = Rpc.detectPacket(map);
         if (a is RpcResponse) {
           onResponse(a);
         }
-      case AnyList list:
+      case RpcList list:
         for (var e in list) {
-          if (e is AnyMap) {
+          if (e is RpcMap) {
             var a = Rpc.detectPacket(e);
             if (a is RpcResponse) {
               onResponse(a);
@@ -40,7 +40,7 @@ class RpcClient implements TextReceiver {
     }
   }
 
-  Future<Object?> request(RpcTextSender textSender, String method, {AnyMap? map, AnyList? list, int timeoutSeconds = 10}) async {
+  Future<Object?> request(RpcTextSender textSender, String method, {RpcMap? map, RpcList? list, int timeoutSeconds = 10}) async {
     int id = Rpc.nextID;
     var r = RpcRequest.invoke(method: method, map: map, list: list, id: id);
     FutureOr<bool> sendResult = textSender(r.toString());
@@ -66,14 +66,14 @@ class RpcClient implements TextReceiver {
     );
   }
 
-  static Future<bool> notify(RpcTextSender textSender, String method, {AnyMap? map, AnyList? list}) async {
+  static Future<bool> notify(RpcTextSender textSender, String method, {RpcMap? map, RpcList? list}) async {
     var r = RpcRequest.notify(method: method, map: map, list: list);
     FutureOr<bool> fo = textSender(r.toString());
     if (fo is Future<bool>) return fo;
     return fo;
   }
 
-  static Future<Object?> remote(String method, {AnyMap? map, AnyList? list, required Future<String?> Function(String) transport}) async {
+  static Future<Object?> remote(String method, {RpcMap? map, RpcList? list, required Future<String?> Function(String) transport}) async {
     var req = RpcRequest.invoke(method: method, map: map, list: list, id: Rpc.nextID);
     String s = req.toString();
     logRpc.d("send: ", s);
@@ -82,7 +82,7 @@ class RpcClient implements TextReceiver {
     if (resp == null) return null;
     var jo = json.decode(resp);
     if (jo == null) return null;
-    if (jo is AnyMap) {
+    if (jo is RpcMap) {
       RpcResponse r = RpcResponse.from(jo);
       if (r.success) return r.result;
       throw r.error!;

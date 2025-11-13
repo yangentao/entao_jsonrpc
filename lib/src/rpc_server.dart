@@ -90,7 +90,7 @@ class RpcServer implements TextReceiver {
         return onRequest(request)?.jsonText;
       case List<dynamic> ls:
         List<RpcRequest> reqList = ls.map((e) => e as RpcRequest).nonNullList;
-        List<AnyMap> arr = reqList.map((r) => onRequest(r)).nonNullList.map((e) => e.toJson()).nonNullList;
+        List<RpcMap> arr = reqList.map((r) => onRequest(r)).nonNullList.map((e) => e.toJson()).nonNullList;
         if (arr.isNotEmpty) return json.encode(arr);
         return null;
     }
@@ -117,12 +117,12 @@ final class RpcAction {
       }
     }
     if (this.context) {
-      AnyList? argList = context.paramList;
+      RpcList? argList = context.paramList;
       Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
       return Function.apply(action, argList == null ? null : <dynamic>[context, ...argList], argMap?.also((e) => e[#context] = context));
     }
 
-    AnyList? argList = context.paramList;
+    RpcList? argList = context.paramList;
     Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
     return Function.apply(action, argList, argMap);
   }

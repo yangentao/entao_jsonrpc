@@ -2,16 +2,6 @@ part of 'rpc.dart';
 
 extension _ListCast<T> on List<T> {
   T? getOr(int index) => index >= this.length ? null : this[index];
-
-  List<R> castList<R>() {
-    List<R> ls = [];
-    for (var a in this) {
-      if (a is R) {
-        ls.add(a as R);
-      }
-    }
-    return ls;
-  }
 }
 
 extension _IterableExt<E> on Iterable<E> {
@@ -29,8 +19,6 @@ extension _NullableIterableExt<T extends Object> on Iterable<T?> {
 }
 
 extension _LetBlock<T> on T {
-  R let<R>(R Function(T e) block) => block(this);
-
   T also(void Function(T) block) {
     block(this);
     return this;

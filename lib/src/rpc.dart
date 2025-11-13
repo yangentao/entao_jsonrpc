@@ -14,8 +14,8 @@ part 'rpc_utils.dart';
 
 TagLog logRpc = TagLog("RPC");
 
-typedef AnyMap = Map<String, dynamic>;
-typedef AnyList = List<dynamic>;
+typedef RpcMap = Map<String, dynamic>;
+typedef RpcList = List<dynamic>;
 
 class Rpc {
   static String JSONRPC = "jsonrpc";
@@ -37,12 +37,12 @@ class Rpc {
   static dynamic detectText(String text) {
     var jv = json.decode(text);
     switch (jv) {
-      case AnyMap map:
+      case RpcMap map:
         return detectPacket(map);
       case List<dynamic> list:
         List<RpcPacket> ls = list
             .map((e) {
-              if (e is AnyMap) {
+              if (e is RpcMap) {
                 return detectPacket(e);
               } else {
                 return null;
@@ -55,7 +55,7 @@ class Rpc {
     return null;
   }
 
-  static RpcPacket? detectPacket(AnyMap map) {
+  static RpcPacket? detectPacket(RpcMap map) {
     if (!_verifyVersion(map)) return null;
     if (map.containsKey(Rpc.RESULT) || map.containsKey(Rpc.ERROR)) {
       return RpcResponse.from(map);
@@ -65,25 +65,25 @@ class Rpc {
   }
 }
 
-bool _verifyVersion(AnyMap map) {
+bool _verifyVersion(RpcMap map) {
   return map[Rpc.JSONRPC] == Rpc.VERSION;
 }
 
 sealed class RpcPacket {
   RpcPacket();
 
-  AnyMap toJson() {
-    AnyMap map = AnyMap();
+  RpcMap toJson() {
+    RpcMap map = RpcMap();
     map[Rpc.JSONRPC] = Rpc.VERSION;
     onJson(map);
     return map;
   }
 
-  void onJson(AnyMap map) {}
+  void onJson(RpcMap map) {}
 
   @override
   String toString() {
-    AnyMap map = toJson();
+    RpcMap map = toJson();
     return json.encode(map );
   }
 }
@@ -91,27 +91,6 @@ sealed class RpcPacket {
 typedef RpcTextSender = FutureOr<bool> Function(String text);
 
 abstract mixin class TextReceiver {
-  /// 返回值表示，是否已经处理了text, 如果处理了， 后续的TextReceiver不会再处理该text
+  /// 返回值表示要发给对方的数据. client总是返回null.
   String? onRecvText(String text);
-}
-
-class TextResult {
-  final bool ok;
-  final String? _text;
-
-  TextResult._(this.ok, this._text);
-
-  TextResult.success(this._text) : ok = true;
-
-  TextResult.failed(this._text) : ok = false;
-
-  String? get data {
-    if (ok) return _text;
-    _error("NO data");
-  }
-
-  String? get message {
-    if (!ok) return _text;
-    _error("No message");
-  }
 }

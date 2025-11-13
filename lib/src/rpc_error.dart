@@ -11,15 +11,18 @@ class RpcError {
     assert(code >= 32000 && code <= 32099);
   }
 
-  RpcError.from(AnyMap map) : code = map[Rpc.CODE], message = map[Rpc.MESSAGE], data = map[Rpc.DATA];
+  RpcError.from(RpcMap map)
+      : code = map[Rpc.CODE],
+        message = map[Rpc.MESSAGE],
+        data = map[Rpc.DATA];
 
   @override
   String toString() {
     return "RpcError(code:$code, message:$message, data: $data)";
   }
 
-  AnyMap toMap() {
-    AnyMap m = AnyMap();
+  RpcMap toMap() {
+    RpcMap m = RpcMap();
     m[Rpc.CODE] = code;
     m[Rpc.MESSAGE] = message;
     if (data != null) m[Rpc.DATA] = data.toString();
@@ -37,4 +40,8 @@ class RpcError {
   }
 
   static RpcError sendFailed = RpcError(4000, "Send Failed");
+}
+
+Never errorRpc(String message, {int code = -1, Object? data}) {
+  throw RpcError(code, message, data);
 }

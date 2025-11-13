@@ -27,14 +27,14 @@ final class RpcResponse extends RpcPacket {
 
   String get resultString => result as String;
 
-  AnyList get resultList => result as AnyList;
+  RpcList get resultList => result as RpcList;
 
-  AnyMap get resultMap => result as AnyMap;
+  RpcMap get resultMap => result as RpcMap;
 
   String get jsonText => toString();
 
   @override
-  void onJson(AnyMap map) {
+  void onJson(RpcMap map) {
     super.onJson(map);
     map[Rpc.ID] = id;
     if (success) {
@@ -44,10 +44,10 @@ final class RpcResponse extends RpcPacket {
     }
   }
 
-  static RpcResponse from(AnyMap map) {
+  static RpcResponse from(RpcMap map) {
     if (!_verifyVersion(map)) throw RpcError.parse;
     Object id = map[Rpc.ID];
-    AnyMap? error = map[Rpc.ERROR];
+    RpcMap? error = map[Rpc.ERROR];
     if (error != null) {
       return RpcResponse.failed(id: id, error: RpcError.from(error));
     } else {
@@ -56,7 +56,7 @@ final class RpcResponse extends RpcPacket {
     }
   }
 
-  static List<RpcResponse> fromBatch(AnyList list) {
+  static List<RpcResponse> fromBatch(RpcList list) {
     return list.mapList((e) => from(e));
   }
 }

@@ -28,16 +28,6 @@ extension _NullableIterableExt<T extends Object> on Iterable<T?> {
   List<T> get nonNullList => nonNulls.toList();
 }
 
-extension on Object {
-  bool identyEqual(Object? other) {
-    return identical(this, other);
-  }
-
-  T? castTo<T>() {
-    return this is T ? this as T : null;
-  }
-}
-
 extension _LetBlock<T> on T {
   R let<R>(R Function(T e) block) => block(this);
 

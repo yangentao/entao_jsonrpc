@@ -32,11 +32,11 @@ class RpcService implements TextReceiver {
     return null;
   }
 
-  Future<Object?> request(TextSender textSender, String method, {AnyMap? args}) {
+  Future<Object?> request(RpcTextSender textSender, String method, {AnyMap? args}) {
     return client.request(textSender, method, map: args);
   }
 
-  Future<bool> notify(TextSender textSender, String method, {AnyMap? args}) {
+  Future<bool> notify(RpcTextSender textSender, String method, {AnyMap? args}) {
     return RpcClient.notify(textSender, method, map: args);
   }
 

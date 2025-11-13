@@ -42,9 +42,9 @@ class RpcContext {
 
   bool get hasParams => paramCount > 0;
 
-  AnyMap? get paramMap => request.params?.castTo();
+  AnyMap? get paramMap => request.params is AnyMap ? request.params as AnyMap : null;
 
-  AnyList? get paramList => request.params?.castTo();
+  AnyList? get paramList => request.params is AnyList ? request.params as AnyList : null;
 
   bool hasParam(String name) => true == paramMap?.containsKey(name);
 
@@ -69,6 +69,7 @@ class RpcContext {
     if (m == null) return null;
     return mapper(m);
   }
+
   T? getModelAt<T extends Object>(int index, T Function(AnyMap) mapper) {
     AnyMap? m = paramList?[index] as AnyMap?;
     if (m == null) return null;

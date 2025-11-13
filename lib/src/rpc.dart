@@ -14,11 +14,8 @@ part 'rpc_utils.dart';
 
 TagLog logRpc = TagLog("RPC");
 
-
-
 typedef AnyMap = Map<String, dynamic>;
 typedef AnyList = List<dynamic>;
-
 
 class Rpc {
   static String JSONRPC = "jsonrpc";
@@ -86,16 +83,12 @@ sealed class RpcPacket {
 
   @override
   String toString() {
-    return json.encode(toJson());
+    AnyMap map = toJson();
+    return json.encode(map );
   }
 }
 
-typedef StringFuncString = String? Function(String text);
-
-abstract mixin class TextSender {
-  /// 返回值表示是否发送成功
-  Future<bool> sendText(String text);
-}
+typedef RpcTextSender = FutureOr<bool> Function(String text);
 
 abstract mixin class TextReceiver {
   /// 返回值表示，是否已经处理了text, 如果处理了， 后续的TextReceiver不会再处理该text
@@ -120,16 +113,5 @@ class TextResult {
   String? get message {
     if (!ok) return _text;
     _error("No message");
-  }
-}
-
-class FuncTextReceiver implements TextReceiver {
-  StringFuncString func;
-
-  FuncTextReceiver(this.func);
-
-  @override
-  String? onRecvText(String text) {
-    return func(text);
   }
 }

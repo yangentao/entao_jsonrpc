@@ -55,6 +55,7 @@ class RpcServer implements TextReceiver {
         dynamic ret = ac.call(context);
         context.success(ret);
       } on RpcError catch (e) {
+        print(e);
         context.failedError(e);
       }
       for (var af in _intersAfter) {
@@ -64,10 +65,14 @@ class RpcServer implements TextReceiver {
           loge(e);
         }
       }
-    } catch (e) {
-      loge(e);
+    } on NoSuchMethodError {
       if (!context.commited) {
-        context.failedError(RpcError.internalError(e));
+        context.failedError(RpcError.methodNotFound);
+      }
+    } catch (e) {
+      logRpc.e(e.toString());
+      if (!context.commited) {
+        context.failedError(RpcError.internalError(e.toString()));
       }
     } finally {
       if (!context.commited) {
@@ -112,13 +117,13 @@ final class RpcAction {
       }
     }
     if (this.context) {
-      AnyList? argList = params?.castTo<AnyList>();
-      Map<Symbol, dynamic>? argMap = params?.castTo<AnyMap>()?.map((k, v) => MapEntry(Symbol(k), v));
+      AnyList? argList = context.paramList;
+      Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
       return Function.apply(action, argList == null ? null : <dynamic>[context, ...argList], argMap?.also((e) => e[#context] = context));
     }
 
-    AnyList? argList = params?.castTo<AnyList>();
-    Map<Symbol, dynamic>? argMap = params?.castTo<AnyMap>()?.map((k, v) => MapEntry(Symbol(k), v));
+    AnyList? argList = context.paramList;
+    Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
     return Function.apply(action, argList, argMap);
   }
 }

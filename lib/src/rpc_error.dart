@@ -22,7 +22,7 @@ class RpcError {
     AnyMap m = AnyMap();
     m[Rpc.CODE] = code;
     m[Rpc.MESSAGE] = message;
-    if (data != null) m[Rpc.DATA] = data;
+    if (data != null) m[Rpc.DATA] = data.toString();
     return m;
   }
 

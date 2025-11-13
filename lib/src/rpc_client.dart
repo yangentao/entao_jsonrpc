@@ -3,6 +3,8 @@ part of 'rpc.dart';
 class RpcClient implements TextReceiver {
   final Map<int, _ClientInfo> _mapReq = {};
 
+  int get runningCount => _mapReq.length;
+
   @override
   String? onRecvText(String text) {
     var jo = json.decode(text);
@@ -38,12 +40,19 @@ class RpcClient implements TextReceiver {
     }
   }
 
-  Future<Object?> request(TextSender textSender, String method, {AnyMap? map, AnyList? list, int timeoutSeconds = 10}) async {
+  Future<Object?> request(RpcTextSender textSender, String method, {AnyMap? map, AnyList? list, int timeoutSeconds = 10}) async {
     int id = Rpc.nextID;
     var r = RpcRequest.invoke(method: method, map: map, list: list, id: id);
-    var b = await textSender.sendText(r.toString());
-    if (b != true) {
-      return null;
+    FutureOr<bool> sendResult = textSender(r.toString());
+    if (sendResult is Future<bool>) {
+      bool b = await sendResult;
+      if (b != true) {
+        return null;
+      }
+    } else {
+      if (sendResult != true) {
+        return null;
+      }
     }
     var info = _ClientInfo(r);
     _mapReq[id] = info;
@@ -57,9 +66,11 @@ class RpcClient implements TextReceiver {
     );
   }
 
-  static Future<bool> notify(TextSender textSender, String method, {AnyMap? map, AnyList? list}) async {
+  static Future<bool> notify(RpcTextSender textSender, String method, {AnyMap? map, AnyList? list}) async {
     var r = RpcRequest.notify(method: method, map: map, list: list);
-    return await textSender.sendText(r.toString());
+    FutureOr<bool> fo = textSender(r.toString());
+    if (fo is Future<bool>) return fo;
+    return fo;
   }
 
   static Future<Object?> remote(String method, {AnyMap? map, AnyList? list, required Future<String?> Function(String) transport}) async {

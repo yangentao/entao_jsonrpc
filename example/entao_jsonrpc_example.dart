@@ -37,14 +37,14 @@ void main() async {
   // if context parameter is true,
   //    if method is positioned, the first argument is 'RpcContext context'
   //    if method is named. an argument named 'RpcContext context' is placed.
-  server.addAction(RpcAction(method: "echoName", action: echoName, context: false, expand: true));
-  server.addAction(RpcAction(method: "echoIndex", action: echoIndex, context: false, expand: true));
+  server.addAction(RpcAction("echoName", echoName, context: false, expand: true));
+  server.addAction(RpcAction("echoIndex", echoIndex, context: false, expand: true));
 
   // expand is ignored when no result (null) received
-  server.addAction(RpcAction(method: "echoVoid", action: echoVoid, context: false));
-  server.addAction(RpcAction(method: "echoContext", action: echoContext, context: true, expand: false));
-  server.addAction(RpcAction(method: "echoContextParams", action: echoContextParams, context: true, expand: false));
-  server.addAction(RpcAction(method: "echoNameWithContext", action: echoNameWithContext, context: true, expand: true, names: {"name", "age"}));
+  server.addAction(RpcAction("echoVoid", echoVoid, context: false));
+  server.addAction(RpcAction("echoContext", echoContext, context: true, expand: false));
+  server.addAction(RpcAction("echoContextParams", echoContextParams, context: true, expand: false));
+  server.addAction(RpcAction("echoNameWithContext", echoNameWithContext, context: true, expand: true, names: {"name", "age"}));
 
   // named arguments
   Object? result = await client.request(clientSender, "echoName", map: {"name": "entao", "age": 33}, timeoutSeconds: 1);

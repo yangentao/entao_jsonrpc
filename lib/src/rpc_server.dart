@@ -10,12 +10,12 @@ class RpcServer implements TextReceiver {
 
   /// void Function(RpcContext context, params)
   void addGroup(String group, String method, Function action, {bool context = false, bool expand = true}) {
-    addAction(RpcAction(method: "$group.$method", action: action, context: context, expand: expand));
+    addAction(RpcAction("$group.$method", action, context: context, expand: expand));
   }
 
   /// void Function(RpcContext context, params)
   void add(String method, Function action, {bool context = false, bool expand = true}) {
-    addAction(RpcAction(method: method, action: action, context: context, expand: expand));
+    addAction(RpcAction(method, action, context: context, expand: expand));
   }
 
   void addAction(RpcAction action) {
@@ -105,7 +105,7 @@ final class RpcAction {
   final bool expand;
   final Set<String>? names;
 
-  RpcAction({required this.method, required this.action, this.context = false, this.expand = true, this.names});
+  RpcAction(this.method, this.action, {this.context = false, this.expand = true, this.names});
 
   dynamic call(RpcContext context) {
     dynamic params = context.request.params;

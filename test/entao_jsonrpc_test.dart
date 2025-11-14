@@ -1,4 +1,3 @@
-import 'package:entao_jsonrpc/entao_jsonrpc.dart';
 import 'package:test/test.dart';
 
 void main() {

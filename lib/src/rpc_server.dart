@@ -103,8 +103,9 @@ final class RpcAction {
   final Function action;
   final bool context;
   final bool expand;
+  final Set<String>? names;
 
-  RpcAction({required this.method, required this.action, this.context = false, this.expand = true});
+  RpcAction({required this.method, required this.action, this.context = false, this.expand = true, this.names});
 
   dynamic call(RpcContext context) {
     dynamic params = context.request.params;
@@ -116,14 +117,14 @@ final class RpcAction {
         return Function.apply(action, [if (this.context) context, params]);
       }
     }
-    if (this.context) {
-      RpcList? argList = context.paramList;
-      Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
-      return Function.apply(action, argList == null ? null : <dynamic>[context, ...argList], argMap?.also((e) => e[#context] = context));
-    }
 
-    RpcList? argList = context.paramList;
-    Map<Symbol, dynamic>? argMap = context.paramMap?.map((k, v) => MapEntry(Symbol(k), v));
-    return Function.apply(action, argList, argMap);
+    switch (params) {
+      case RpcList ls:
+        return Function.apply(action, [if (this.context) context, ...ls]);
+      case RpcMap map:
+        return Function.apply(action, [if (this.context) context], map.map((k, v) => MapEntry(Symbol(k), v)));
+      default:
+        throw Exception("Invalid request params");
+    }
   }
 }

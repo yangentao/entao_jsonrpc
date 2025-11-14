@@ -44,6 +44,7 @@ void main() async {
   server.addAction(RpcAction(method: "echoVoid", action: echoVoid, context: false));
   server.addAction(RpcAction(method: "echoContext", action: echoContext, context: true, expand: false));
   server.addAction(RpcAction(method: "echoContextParams", action: echoContextParams, context: true, expand: false));
+  server.addAction(RpcAction(method: "echoNameWithContext", action: echoNameWithContext, context: true, expand: true));
 
   // named arguments
   Object? result = await client.request(clientSender, "echoName", map: {"name": "entao", "age": 33}, timeoutSeconds: 1);
@@ -70,15 +71,20 @@ void main() async {
   logRpc.d("Result echoContextParams: ", resultEchoContextParams);
   // 2025-11-14 06:07:58.466 D RPC: Result echoContextParams:  echoContextParams: {a: 1, b: 2}
 
-  Future.delayed(Duration(seconds: 1));
-}
+  // with RpcContext argument and raw parameters result
+  Object? resultEchoNameWithContext = await client.request(clientSender, "echoNameWithContext", map: {"name": "Jerry", "age": 3}, timeoutSeconds: 1);
+  logRpc.d("Result echoNameWithContext: ", resultEchoNameWithContext);
+  // 2025-11-14 08:16:43.150 D RPC: Result echoNameWithContext:  echoNameWithContext: Jerry, 3
 
-String echoName({required String name, required int age}) {
-  return "echoName: $name, $age";
+  Future.delayed(Duration(seconds: 1));
 }
 
 String echoIndex(String name, int age) {
   return "echoIndex: $name, $age";
+}
+
+String echoName({required String name, required int age}) {
+  return "echoName: $name, $age";
 }
 
 String echoVoid() {
@@ -91,4 +97,8 @@ String echoContext(RpcContext context) {
 
 String echoContextParams(RpcContext context, dynamic params) {
   return "echoContextParams: $params";
+}
+
+String echoNameWithContext(RpcContext context, {required String name, required int age}) {
+  return "echoNameWithContext: $name, $age";
 }

@@ -19,6 +19,10 @@ extension _NullableIterableExt<T extends Object> on Iterable<T?> {
 }
 
 extension _LetBlock<T> on T {
+  R let<R>(R Function(T) block) {
+    return block(this);
+  }
+
   T also(void Function(T) block) {
     block(this);
     return this;

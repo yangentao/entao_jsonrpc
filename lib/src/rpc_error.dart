@@ -29,17 +29,15 @@ class RpcError {
     return m;
   }
 
+  RpcError withData(Object data) {
+    return RpcError(code, message, data);
+  }
+
   static RpcError parse = RpcError(32700, "Parse Error");
   static RpcError invalidRequest = RpcError(32600, "Invalid Request");
   static RpcError methodNotFound = RpcError(32601, "Method NOT Found");
   static RpcError invalidParams = RpcError(32602, "Invalid Params");
   static RpcError internal = RpcError(32603, "Internal Error");
-
-  static RpcError internalError(Object? data) {
-    return RpcError(32603, "Internal Error", data);
-  }
-
-  static RpcError sendFailed = RpcError(4000, "Send Failed");
 }
 
 Never errorRpc(String message, {int code = -1, Object? data}) {

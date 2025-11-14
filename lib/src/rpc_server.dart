@@ -67,16 +67,16 @@ class RpcServer implements TextReceiver {
       }
     } on NoSuchMethodError {
       if (!context.commited) {
-        context.failedError(RpcError.methodNotFound);
+        context.failedError(RpcError.methodNotFound.withData("${context.request.id}, ${context.request.method}"));
       }
     } catch (e) {
       logRpc.e(e.toString());
       if (!context.commited) {
-        context.failedError(RpcError.internalError(e.toString()));
+        context.failedError(RpcError.internal.withData("${context.request.id}, ${context.request.method}, ${e.toString()}"));
       }
     } finally {
       if (!context.commited) {
-        context.failedError(RpcError.internal);
+        context.failedError(RpcError.internal.withData("${context.request.id}, ${context.request.method}, NO response."));
       }
     }
     return context.response;
@@ -122,7 +122,14 @@ final class RpcAction {
       case RpcList ls:
         return Function.apply(action, [if (this.context) context, ...ls]);
       case RpcMap map:
-        return Function.apply(action, [if (this.context) context], map.map((k, v) => MapEntry(Symbol(k), v)));
+        Map<Symbol, dynamic>? symMap;
+        Set<String>? keySet = names;
+        if (keySet != null && keySet.isNotEmpty) {
+          symMap = Map<Symbol, dynamic>.fromEntries(map.entries.where((e) => keySet.contains(e.key)).map((e) => MapEntry(Symbol(e.key), e.value)));
+        } else {
+          symMap = map.map((k, v) => MapEntry(Symbol(k), v));
+        }
+        return Function.apply(action, [if (this.context) context], symMap);
       default:
         throw Exception("Invalid request params");
     }

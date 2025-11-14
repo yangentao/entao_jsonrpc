@@ -44,7 +44,7 @@ void main() async {
   server.addAction(RpcAction(method: "echoVoid", action: echoVoid, context: false));
   server.addAction(RpcAction(method: "echoContext", action: echoContext, context: true, expand: false));
   server.addAction(RpcAction(method: "echoContextParams", action: echoContextParams, context: true, expand: false));
-  server.addAction(RpcAction(method: "echoNameWithContext", action: echoNameWithContext, context: true, expand: true));
+  server.addAction(RpcAction(method: "echoNameWithContext", action: echoNameWithContext, context: true, expand: true, names: {"name", "age"}));
 
   // named arguments
   Object? result = await client.request(clientSender, "echoName", map: {"name": "entao", "age": 33}, timeoutSeconds: 1);
@@ -72,7 +72,7 @@ void main() async {
   // 2025-11-14 06:07:58.466 D RPC: Result echoContextParams:  echoContextParams: {a: 1, b: 2}
 
   // with RpcContext argument and raw parameters result
-  Object? resultEchoNameWithContext = await client.request(clientSender, "echoNameWithContext", map: {"name": "Jerry", "age": 3}, timeoutSeconds: 1);
+  Object? resultEchoNameWithContext = await client.request(clientSender, "echoNameWithContext", map: {"name": "Jerry", "age": 3, "addr": "USA"}, timeoutSeconds: 1);
   logRpc.d("Result echoNameWithContext: ", resultEchoNameWithContext);
   // 2025-11-14 08:16:43.150 D RPC: Result echoNameWithContext:  echoNameWithContext: Jerry, 3
 

@@ -1,38 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:entao_jsonrpc/entao_jsonrpc.dart';
 
-RpcClient client = RpcClient();
 RpcServer server = RpcServer();
+const int SERVER_PORT = 20000;
 
-/// simulate transport, tcp/udp/websocket/http etc
-
-// when server transport receive json data, call server.onRecvText().
-// and send back to client, if response is NOT null.
-Future<void> serverReceiver(String text) async {
-  String? response = server.onRecvText(text);
-  if (response != null) {
-    Future.delayed(Duration(milliseconds: 100), () {
-      clientReceiver(response);
-    });
-  }
-}
-
-// client send request json data to server.
-// if return true, client will wait server response.
-FutureOr<bool> clientSender(String text) async {
-  Future.delayed(Duration(milliseconds: 100), () {
-    serverReceiver(text);
-  });
-  return true;
-}
-
-// when client transport receive json data, call client.onRecvText().
-Future<void> clientReceiver(String text) async {
-  client.onRecvText(text);
-}
-
-void main() async {
+void prepareServerActions() {
   // register actions on server side.
   // if context parameter is true,
   //    if method is positioned, the first argument is 'RpcContext context'
@@ -45,38 +20,95 @@ void main() async {
   server.addAction(RpcAction("echoContext", echoContext, context: true, expand: false));
   server.addAction(RpcAction("echoContextParams", echoContextParams, context: true, expand: false));
   server.addAction(RpcAction("echoNameWithContext", echoNameWithContext, context: true, expand: true, names: {"name", "age"}));
+}
 
+Future<RawDatagramSocket> startServer([int port = SERVER_PORT]) async {
+  RawDatagramSocket serverSocket = await RawDatagramSocket.bind(InternetAddress.loopbackIPv4, port);
+  serverSocket.listen((RawSocketEvent e) {
+    switch (e) {
+      case RawSocketEvent.closed:
+      case RawSocketEvent.readClosed:
+      case RawSocketEvent.write:
+        return;
+      case RawSocketEvent.read:
+        Datagram? d = serverSocket.receive();
+        if (d != null) {
+          String? response = server.onRecvText(utf8.decode(d.data));
+          if (response != null) {
+            serverSocket.send(utf8.encode(response), d.address, d.port);
+          }
+        }
+    }
+  });
+  return serverSocket;
+}
+
+RpcClient client = RpcClient();
+
+Future<RawDatagramSocket> startClient() async {
+  RawDatagramSocket clientSocket = await RawDatagramSocket.bind(InternetAddress.loopbackIPv4, 0);
+  clientSocket.listen((RawSocketEvent e) {
+    switch (e) {
+      case RawSocketEvent.closed:
+      case RawSocketEvent.readClosed:
+      case RawSocketEvent.write:
+        return;
+      case RawSocketEvent.read:
+        Datagram? d = clientSocket.receive();
+        if (d != null) {
+          client.onRecvText(utf8.decode(d.data));
+        }
+    }
+  });
+  return clientSocket;
+}
+
+Future<void> clientInvokes(RpcTextSender sender) async {
   // named arguments
-  Object? result = await client.request(clientSender, "echoName", map: {"name": "entao", "age": 33}, timeoutSeconds: 1);
+  Object? result = await client.request(sender, "echoName", map: {"name": "entao", "age": 33}, timeoutSeconds: 1);
   logRpc.d("Result echoName: ", result);
-  // 2025-11-14 06:07:57.645 D RPC: Result echoName:  echoName: entao, 33
+  // 2025-11-14 09:14:02.815 D RPC: Result echoName:  echoName: entao, 33
 
   // positioned arguments
-  Object? resultIndex = await client.request(clientSender, "echoIndex", list: ["tom", 99], timeoutSeconds: 1);
+  Object? resultIndex = await client.request(sender, "echoIndex", list: ["tom", 99], timeoutSeconds: 1);
   logRpc.d("Result echoIndex: ", resultIndex);
-  // 2025-11-14 06:07:57.852 D RPC: Result echoIndex:  echoIndex: tom, 99
+  // 2025-11-14 09:14:02.818 D RPC: Result echoIndex:  echoIndex: tom, 99
 
   // no arguments
-  Object? resultEchoVoid = await client.request(clientSender, "echoVoid", timeoutSeconds: 1);
+  Object? resultEchoVoid = await client.request(sender, "echoVoid", timeoutSeconds: 1);
   logRpc.d("Result echoVoid: ", resultEchoVoid);
-  // 2025-11-14 06:07:58.056 D RPC: Result echoVoid:  echoVoid: void
+  // 2025-11-14 09:14:02.818 D RPC: Result echoVoid:  echoVoid: void
 
   // with RpcContext argument
-  Object? resultEchoContext = await client.request(clientSender, "echoContext", list: [1, 2, 3], timeoutSeconds: 1);
+  Object? resultEchoContext = await client.request(sender, "echoContext", list: [1, 2, 3], timeoutSeconds: 1);
   logRpc.d("Result echoContext: ", resultEchoContext);
-  // 2025-11-14 06:07:58.261 D RPC: Result echoContext:  echoContext: [1, 2, 3]
+  // 2025-11-14 09:14:02.818 D RPC: Result echoContext:  echoContext: [1, 2, 3]
 
   // with RpcContext argument and raw parameters result
-  Object? resultEchoContextParams = await client.request(clientSender, "echoContextParams", map: {"a": 1, "b": 2}, timeoutSeconds: 1);
+  Object? resultEchoContextParams = await client.request(sender, "echoContextParams", map: {"a": 1, "b": 2}, timeoutSeconds: 1);
   logRpc.d("Result echoContextParams: ", resultEchoContextParams);
-  // 2025-11-14 06:07:58.466 D RPC: Result echoContextParams:  echoContextParams: {a: 1, b: 2}
+  // 2025-11-14 09:14:02.819 D RPC: Result echoContextParams:  echoContextParams: {a: 1, b: 2}
 
   // with RpcContext argument and raw parameters result
-  Object? resultEchoNameWithContext = await client.request(clientSender, "echoNameWithContext", map: {"name": "Jerry", "age": 3, "addr": "USA"}, timeoutSeconds: 1);
+  Object? resultEchoNameWithContext = await client.request(sender, "echoNameWithContext", map: {"name": "Jerry", "age": 3, "addr": "USA"}, timeoutSeconds: 1);
   logRpc.d("Result echoNameWithContext: ", resultEchoNameWithContext);
-  // 2025-11-14 08:16:43.150 D RPC: Result echoNameWithContext:  echoNameWithContext: Jerry, 3
+  // 2025-11-14 09:14:02.820 D RPC: Result echoNameWithContext:  echoNameWithContext: Jerry, 3
+}
+
+void main() async {
+  prepareServerActions();
+  RawDatagramSocket serverSocket = await startServer(SERVER_PORT);
+
+  RawDatagramSocket clientSocket = await startClient();
+
+  await clientInvokes((String text) {
+    int n = clientSocket.send(utf8.encode(text), InternetAddress("127.0.0.1"), SERVER_PORT);
+    return n > 0;
+  });
 
   Future.delayed(Duration(seconds: 1));
+  serverSocket.close();
+  clientSocket.close();
 }
 
 String echoIndex(String name, int age) {

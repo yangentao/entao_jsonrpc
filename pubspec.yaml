@@ -1,6 +1,6 @@
 name: entao_jsonrpc
-description: JSON rpc 2.0 for dart language.
-version: 1.0.2
+description: JSON RPC 2.0 for dart language.
+version: 1.0.3
 repository: https://github.com/yangentao/entao_jsonrpc
 homepage: https://github.com/yangentao/entao_jsonrpc
 
@@ -9,7 +9,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-#  entao_dutil: ^2.0.5
+  #  entao_dutil: ^2.0.5
   entao_log: ^1.2.8
   entao_lint: ^1.0.1
 

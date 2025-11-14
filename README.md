@@ -17,6 +17,40 @@ ONLY JSON RPC 2.0 protocol implemented. NO transport dependency.
 * When client transport receive a text packet, call client.onRecvText().
 
 ## Usage
+* Server define methods, and register them.
+```dart 
+String echoIndex(String name, int age) {
+  return "echoIndex: $name, $age";
+}
+
+String echoName({required String name, required int age}) {
+  return "echoName: $name, $age";
+}
+
+RpcServer server = RpcServer();
+server.addAction(RpcAction("echoName", echoName));
+server.addAction(RpcAction("echoIndex", echoIndex));
+// when transport receive text packet, give it to rpc server
+server.onRecvText(jsonPacket);
+```
+* Client invoke remote method over any transport.
+```dart 
+RpcClient client = RpcClient();
+// 'sender' is transport, it's like this:  FutureOr<bool> Function(String text)
+// it can implements by TCP/UDP/WebSocket/Http etc.
+Object? result = await client.request(sender, "echoName", map: {"name": "entao", "age": 33} );
+Object? resultIndex = await client.request(sender, "echoIndex", list: ["tom", 99] );
+// transport over HTTP or blocked tcp like this:
+Object? result = await RpcClient.remote("echoName", map: {"name": "entao", "age": 33}, transport: (jsonText){
+  String s = http.post(uri: '...', body: jsonText);
+  return s;
+});
+
+```
+
+
+
+## Example
 Full code at 'example/udp_example.dart'  
 
 * Server define methods

@@ -19,6 +19,7 @@ void prepareServerActions() {
   server.addAction(RpcAction("echoVoid", echoVoid, context: false));
   server.addAction(RpcAction("echoContext", echoContext, context: true, expand: false));
   server.addAction(RpcAction("echoContextParams", echoContextParams, context: true, expand: false));
+  // ONLY expand parameter named 'name' OR 'age'
   server.addAction(RpcAction("echoNameWithContext", echoNameWithContext, context: true, expand: true, names: {"name", "age"}));
 }
 
@@ -109,6 +110,8 @@ void main() async {
   Future.delayed(Duration(seconds: 1));
   serverSocket.close();
   clientSocket.close();
+  // logRpc.off();  // rpc log off
+  // logRpc.on(level: LogLevel.error) // only errors will output
 }
 
 String echoIndex(String name, int age) {
@@ -131,6 +134,7 @@ String echoContextParams(RpcContext context, dynamic params) {
   return "echoContextParams: $params";
 }
 
+// 'RpcContext context' always position first, when RpcAction.context = true
 String echoNameWithContext(RpcContext context, {required String name, required int age}) {
   return "echoNameWithContext: $name, $age";
 }

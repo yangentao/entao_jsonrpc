@@ -85,9 +85,7 @@ Future<RawDatagramSocket> startServer([int port = SERVER_PORT]) async {
 ```dart 
 void prepareServerActions() {
   // register actions on server side.
-  // if context parameter is true,
-  //    if method is positioned, the first argument is 'RpcContext context'
-  //    if method is named. an argument named 'RpcContext context' is placed.
+  // if context parameter is true, the first argument is 'RpcContext context'
   server.addAction(RpcAction("echoName", echoName, context: false, expand: true));
   // default, context=false, expand=true
   server.addAction(RpcAction("echoIndex", echoIndex));

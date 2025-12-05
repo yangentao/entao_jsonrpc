@@ -5,11 +5,12 @@ class RpcService implements TextReceiver {
   RpcServer server = RpcServer();
 
   @override
-  String? onRecvText(String text) {
+  FutureOr<String?> onRecvText(String text) async  {
     dynamic pk = Rpc.detectText(text);
     switch (pk) {
       case RpcRequest request:
-        return server.onRequest(request)?.jsonText;
+        RpcResponse? resp = await server.onRequest(request);
+        return resp?.jsonText;
       case RpcResponse response:
         client.onResponse(response);
         return null;
@@ -17,7 +18,7 @@ class RpcService implements TextReceiver {
         List<RpcMap> jList = [];
         for (RpcPacket p in ls) {
           if (p is RpcRequest) {
-            var r = server.onRequest(p);
+            var r = await server.onRequest(p);
             if (r != null) {
               jList.add(r.toJson());
             }

@@ -84,7 +84,7 @@ sealed class RpcPacket {
   @override
   String toString() {
     RpcMap map = toJson();
-    return json.encode(map );
+    return json.encode(map);
   }
 }
 
@@ -92,5 +92,5 @@ typedef RpcTextSender = FutureOr<bool> Function(String text);
 
 abstract mixin class TextReceiver {
   /// 返回值表示要发给对方的数据. client总是返回null.
-  String? onRecvText(String text);
+  FutureOr<String?> onRecvText(String text);
 }

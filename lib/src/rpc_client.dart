@@ -6,7 +6,7 @@ class RpcClient implements TextReceiver {
   int get runningCount => _mapReq.length;
 
   @override
-  String? onRecvText(String text) {
+  FutureOr<String?> onRecvText(String text)  {
     var jo = json.decode(text);
     switch (jo) {
       case RpcMap map:

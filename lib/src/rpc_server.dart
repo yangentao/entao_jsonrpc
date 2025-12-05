@@ -1,7 +1,7 @@
 part of 'rpc.dart';
 
 // typedef RpcSender = bool Function(String);
-typedef RpcInterceptor = void Function(RpcContext context);
+typedef RpcInterceptor = FutureOr<void> Function(RpcContext context);
 
 class RpcServer implements TextReceiver {
   final Map<String, RpcAction> _actions = {};
@@ -32,11 +32,11 @@ class RpcServer implements TextReceiver {
 
   RpcAction? find(String method) => _actions[method];
 
-  RpcResponse? onRequest(RpcRequest request) {
+  Future<RpcResponse?> onRequest(RpcRequest request) {
     return dispatch(RpcContext(request));
   }
 
-  RpcResponse? dispatch(RpcContext context) {
+  Future<RpcResponse?> dispatch(RpcContext context) async {
     RpcAction? ac = find(context.method);
     if (ac == null) {
       context.failedError(RpcError.methodNotFound);
@@ -45,7 +45,8 @@ class RpcServer implements TextReceiver {
     try {
       for (var bf in _intersBefore) {
         try {
-          bf.call(context);
+          var r = bf.call(context);
+          if (r is Future) await r;
         } on RpcError catch (e) {
           context.failedError(e);
         }
@@ -53,14 +54,20 @@ class RpcServer implements TextReceiver {
       }
       try {
         dynamic ret = ac.call(context);
-        context.success(ret);
+        if (ret is Future) {
+          var r = await ret;
+          context.success(r);
+        } else {
+          context.success(ret);
+        }
       } on RpcError catch (e) {
         print(e);
         context.failedError(e);
       }
       for (var af in _intersAfter) {
         try {
-          af.call(context);
+          var r = af.call(context);
+          if (r is Future) await r;
         } catch (e) {
           loge(e);
         }
@@ -83,14 +90,21 @@ class RpcServer implements TextReceiver {
   }
 
   @override
-  String? onRecvText(String text) {
+  FutureOr<String?> onRecvText(String text) async {
     dynamic pk = Rpc.detectText(text);
     switch (pk) {
       case RpcRequest request:
-        return onRequest(request)?.jsonText;
+        RpcResponse? resp = await onRequest(request);
+        return resp?.jsonText;
       case List<dynamic> ls:
         List<RpcRequest> reqList = ls.map((e) => e as RpcRequest).nonNullList;
-        List<RpcMap> arr = reqList.map((r) => onRequest(r)).nonNullList.map((e) => e.toJson()).nonNullList;
+        List<RpcMap> arr = [];
+        for (RpcRequest req in reqList) {
+          RpcResponse? resp = await onRequest(req);
+          if (resp != null) {
+            arr.add(resp.toJson());
+          }
+        }
         if (arr.isNotEmpty) return json.encode(arr);
         return null;
     }

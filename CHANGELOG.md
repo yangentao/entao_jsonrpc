@@ -1,8 +1,10 @@
 ## 1.0.0
-- Initial.
+*Initial.
 
 ## 1.0.2
-- UDP example.
+*UDP example.
 
 ## 1.0.3
-- usage.
+* usage.
+## 1.0.4
+* Server side support async.

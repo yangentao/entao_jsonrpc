@@ -25,7 +25,7 @@ void prepareServerActions() {
 
 Future<RawDatagramSocket> startServer([int port = SERVER_PORT]) async {
   RawDatagramSocket serverSocket = await RawDatagramSocket.bind(InternetAddress.loopbackIPv4, port);
-  serverSocket.listen((RawSocketEvent e) {
+  serverSocket.listen((RawSocketEvent e) async {
     switch (e) {
       case RawSocketEvent.closed:
       case RawSocketEvent.readClosed:
@@ -34,7 +34,7 @@ Future<RawDatagramSocket> startServer([int port = SERVER_PORT]) async {
       case RawSocketEvent.read:
         Datagram? d = serverSocket.receive();
         if (d != null) {
-          String? response = server.onRecvText(utf8.decode(d.data));
+          String? response = await server.onRecvText(utf8.decode(d.data));
           if (response != null) {
             serverSocket.send(utf8.encode(response), d.address, d.port);
           }

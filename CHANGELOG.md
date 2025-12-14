@@ -8,3 +8,6 @@
 * usage.
 ## 1.0.4
 * Server side support async.
+
+## 1.0.5
+* context

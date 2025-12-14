@@ -3,10 +3,14 @@ part of 'rpc.dart';
 class RpcContext {
   final RpcRequest request;
   RpcResponse? response;
-  final Map<String, dynamic> attrs = {};
+  final Map<String, dynamic> contextMap = {};
   bool _commited = false;
 
-  RpcContext(this.request);
+  RpcContext(this.request, {Map<String, dynamic>? context}) {
+    if (context != null) {
+      this.contextMap.addAll(context);
+    }
+  }
 
   bool get commited => _commited;
 

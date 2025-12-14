@@ -3,7 +3,7 @@ part of 'rpc.dart';
 // typedef RpcSender = bool Function(String);
 typedef RpcInterceptor = FutureOr<void> Function(RpcContext context);
 
-class RpcServer implements TextReceiver {
+class RpcServer {
   final Map<String, RpcAction> _actions = {};
   final List<RpcInterceptor> _intersBefore = [];
   final List<RpcInterceptor> _intersAfter = [];
@@ -32,8 +32,8 @@ class RpcServer implements TextReceiver {
 
   RpcAction? find(String method) => _actions[method];
 
-  Future<RpcResponse?> onRequest(RpcRequest request) {
-    return dispatch(RpcContext(request));
+  Future<RpcResponse?> onRequest(RpcRequest request, {Map<String, dynamic>? context}) {
+    return dispatch(RpcContext(request, context: context));
   }
 
   Future<RpcResponse?> dispatch(RpcContext context) async {
@@ -89,18 +89,17 @@ class RpcServer implements TextReceiver {
     return context.response;
   }
 
-  @override
-  FutureOr<String?> onRecvText(String text) async {
+  FutureOr<String?> onRecvText(String text, {Map<String, dynamic>? context}) async {
     dynamic pk = Rpc.detectText(text);
     switch (pk) {
       case RpcRequest request:
-        RpcResponse? resp = await onRequest(request);
+        RpcResponse? resp = await onRequest(request, context: context);
         return resp?.jsonText;
       case List<dynamic> ls:
         List<RpcRequest> reqList = ls.map((e) => e as RpcRequest).nonNullList;
         List<RpcMap> arr = [];
         for (RpcRequest req in reqList) {
-          RpcResponse? resp = await onRequest(req);
+          RpcResponse? resp = await onRequest(req, context: context);
           if (resp != null) {
             arr.add(resp.toJson());
           }

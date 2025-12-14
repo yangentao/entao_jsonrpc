@@ -1,12 +1,11 @@
 part of 'rpc.dart';
 
-class RpcClient implements TextReceiver {
+class RpcClient {
   final Map<int, _ClientInfo> _mapReq = {};
 
   int get runningCount => _mapReq.length;
 
-  @override
-  FutureOr<String?> onRecvText(String text)  {
+  FutureOr<String?> onRecvText(String text) {
     var jo = json.decode(text);
     switch (jo) {
       case RpcMap map:

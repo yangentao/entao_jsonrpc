@@ -1,15 +1,14 @@
 part of 'rpc.dart';
 
-class RpcService implements TextReceiver {
+class RpcService {
   RpcClient client = RpcClient();
   RpcServer server = RpcServer();
 
-  @override
-  FutureOr<String?> onRecvText(String text) async  {
+  FutureOr<String?> onRecvText(String text, {Map<String, dynamic>? context}) async {
     dynamic pk = Rpc.detectText(text);
     switch (pk) {
       case RpcRequest request:
-        RpcResponse? resp = await server.onRequest(request);
+        RpcResponse? resp = await server.onRequest(request, context: context);
         return resp?.jsonText;
       case RpcResponse response:
         client.onResponse(response);
@@ -18,7 +17,7 @@ class RpcService implements TextReceiver {
         List<RpcMap> jList = [];
         for (RpcPacket p in ls) {
           if (p is RpcRequest) {
-            var r = await server.onRequest(p);
+            var r = await server.onRequest(p, context: context);
             if (r != null) {
               jList.add(r.toJson());
             }
